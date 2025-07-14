@@ -1,0 +1,59 @@
+syntax = "proto2";
+
+import "buf/validate/validate.proto";
+
+message VersionPacket {
+  optional uint32 major_ver = 1 [(buf.validate.field).required = true];
+  optional uint32 minor_ver = 2 [(buf.validate.field).required = true];
+  optional uint32 patch_ver = 3 [(buf.validate.field).required = true];
+  optional uint32 protocol_extension = 4 [(buf.validate.field).required = true];
+}
+
+message LoginPacket {
+  optional string user_identifier = 1 [
+    (buf.validate.field).string.len = 64,
+    (buf.validate.field).required = true
+  ];
+  optional string user_password = 2 [
+    (buf.validate.field).string.len = 64,
+    (buf.validate.field).required = true
+  ];
+}
+
+message MessagePacket {
+  repeated string identifiers = 1 [
+    (buf.validate.field).repeated.min_items = 1,
+    (buf.validate.field).repeated.max_items = 256,
+    (buf.validate.field).repeated.items = {
+      string: {max_len: 64}
+    },
+    (buf.validate.field).required = true
+  ];
+  optional string channel_id = 2 [(buf.validate.field).string.len = 64];
+  optional string message = 3 [
+    (buf.validate.field).string.max_len = 1024,
+    (buf.validate.field).required = true
+  ];
+}
+
+message ErrorPacket {
+  optional string user_identifier = 1 [
+    (buf.validate.field).string.len = 64,
+    (buf.validate.field).required = true
+  ];
+  optional string error = 3 [
+    (buf.validate.field).string.max_len = 1024,
+    (buf.validate.field).required = true
+  ];
+}
+
+message UniversalPacket {
+  oneof payload {
+    option (buf.validate.oneof).required = true;
+
+    VersionPacket version = 1;
+    ErrorPacket error = 2;
+    LoginPacket login = 3;
+    MessagePacket message = 4;
+  }
+}

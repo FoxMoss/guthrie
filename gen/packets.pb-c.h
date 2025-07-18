@@ -19,12 +19,18 @@ PROTOBUF_C__BEGIN_DECLS
 typedef struct VersionPacket VersionPacket;
 typedef struct LoginPacket LoginPacket;
 typedef struct MessagePacket MessagePacket;
+typedef struct AffirmPacket AffirmPacket;
 typedef struct ErrorPacket ErrorPacket;
 typedef struct UniversalPacket UniversalPacket;
 
 
 /* --- enums --- */
 
+typedef enum _AffirmationType {
+  AFFIRMATION_TYPE__AFFIRM_LOGIN = 0,
+  AFFIRMATION_TYPE__AFFIRM_MESSAGE = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(AFFIRMATION_TYPE)
+} AffirmationType;
 
 /* --- messages --- */
 
@@ -69,6 +75,17 @@ struct  MessagePacket
 , 0,NULL, NULL, NULL }
 
 
+struct  AffirmPacket
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean has_type;
+  AffirmationType type;
+};
+#define AFFIRM_PACKET__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&affirm_packet__descriptor) \
+, 0, AFFIRMATION_TYPE__AFFIRM_LOGIN }
+
+
 struct  ErrorPacket
 {
   ProtobufCMessage base;
@@ -85,7 +102,8 @@ typedef enum {
   UNIVERSAL_PACKET__PAYLOAD_VERSION = 1,
   UNIVERSAL_PACKET__PAYLOAD_ERROR = 2,
   UNIVERSAL_PACKET__PAYLOAD_LOGIN = 3,
-  UNIVERSAL_PACKET__PAYLOAD_MESSAGE = 4
+  UNIVERSAL_PACKET__PAYLOAD_MSG = 4,
+  UNIVERSAL_PACKET__PAYLOAD_AFFIRM = 5
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(UNIVERSAL_PACKET__PAYLOAD__CASE)
 } UniversalPacket__PayloadCase;
 
@@ -94,9 +112,10 @@ struct  UniversalPacket
   ProtobufCMessage base;
   UniversalPacket__PayloadCase payload_case;
   union {
+    AffirmPacket *affirm;
     ErrorPacket *error;
     LoginPacket *login;
-    MessagePacket *message;
+    MessagePacket *msg;
     VersionPacket *version;
   };
 };
@@ -162,6 +181,25 @@ MessagePacket *
 void   message_packet__free_unpacked
                      (MessagePacket *message,
                       ProtobufCAllocator *allocator);
+/* AffirmPacket methods */
+void   affirm_packet__init
+                     (AffirmPacket         *message);
+size_t affirm_packet__get_packed_size
+                     (const AffirmPacket   *message);
+size_t affirm_packet__pack
+                     (const AffirmPacket   *message,
+                      uint8_t             *out);
+size_t affirm_packet__pack_to_buffer
+                     (const AffirmPacket   *message,
+                      ProtobufCBuffer     *buffer);
+AffirmPacket *
+       affirm_packet__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   affirm_packet__free_unpacked
+                     (AffirmPacket *message,
+                      ProtobufCAllocator *allocator);
 /* ErrorPacket methods */
 void   error_packet__init
                      (ErrorPacket         *message);
@@ -211,6 +249,9 @@ typedef void (*LoginPacket_Closure)
 typedef void (*MessagePacket_Closure)
                  (const MessagePacket *message,
                   void *closure_data);
+typedef void (*AffirmPacket_Closure)
+                 (const AffirmPacket *message,
+                  void *closure_data);
 typedef void (*ErrorPacket_Closure)
                  (const ErrorPacket *message,
                   void *closure_data);
@@ -223,9 +264,11 @@ typedef void (*UniversalPacket_Closure)
 
 /* --- descriptors --- */
 
+extern const ProtobufCEnumDescriptor    affirmation_type__descriptor;
 extern const ProtobufCMessageDescriptor version_packet__descriptor;
 extern const ProtobufCMessageDescriptor login_packet__descriptor;
 extern const ProtobufCMessageDescriptor message_packet__descriptor;
+extern const ProtobufCMessageDescriptor affirm_packet__descriptor;
 extern const ProtobufCMessageDescriptor error_packet__descriptor;
 extern const ProtobufCMessageDescriptor universal_packet__descriptor;
 

@@ -1,23 +1,17 @@
 #include "guthrie.h"
+#include "packets.pb-c.h"
 #include <stdio.h>
 
-int handle_unauth(GuthrieState *state, enum Status status) {
-  if (status == STATUS_PACKET_AVAILABLE) {
-    UniversalPacket *packet = guthrie_parse_packet(state);
-    if (packet->payload_case == UNIVERSAL_PACKET__PAYLOAD_ERROR &&
-        packet->error->error != NULL) {
-      printf("\n---\n%s\n---\n", packet->error->error);
-    }
-  }
+int handle_unauth(GuthrieState *state) {
 
   char username[66]; // +1 for null term +1 newline
   printf("\nUsername: ");
   fgets(username, 66, stdin);
-  username[65] = 0;
+  username[64] = 0;
   char password[66];
   printf("Password: ");
   fgets(password, 66, stdin);
-  password[65] = 0;
+  password[64] = 0;
 
   if (guthrie_send_auth(state, username, password) == -1)
     return -1;
@@ -32,7 +26,7 @@ int main(int argc, char *argv[]) {
   }
   GuthrieState *state = op.data.state;
   guthrie_send_version(state);
-  printf("Guthrie v%i.%i.%i.%i\n", VER_MAJOR, VER_MINOR, VER_PATCH, VER_EXTEN);
+  printf("Guthrie v%i.%i.%i ^%i\n", VER_MAJOR, VER_MINOR, VER_PATCH, VER_EXTEN);
 
   enum {
     CLIENT_UNAUTHED,
@@ -41,17 +35,32 @@ int main(int argc, char *argv[]) {
 
   while (true) {
 
-    enum Status status;
-    do {
-      status = guthrie_async_read(state);
-    } while (status == STATUS_READ);
-    if (status == STATUS_EXIT)
+    if (guthrie_async_read(state) == STATUS_EXIT)
       break;
 
     switch (client_level) {
     case CLIENT_UNAUTHED: {
-      if (handle_unauth(state, status) == -1)
+      if (handle_unauth(state) == -1)
         goto goodbye;
+
+      do {
+        enum Status status = guthrie_async_read(state);
+        if (status == STATUS_PACKET_AVAILABLE) {
+          UniversalPacket *packet = guthrie_parse_packet(state);
+          if (packet->payload_case == UNIVERSAL_PACKET__PAYLOAD_AFFIRM &&
+              packet->affirm->type == AFFIRMATION_TYPE__AFFIRM_LOGIN) {
+            client_level = CLIENT_PRIVLAGED;
+            printf("Logged in!\n");
+          }
+
+          if (packet->payload_case == UNIVERSAL_PACKET__PAYLOAD_ERROR)
+            printf("\n---\n%s\n---\n", packet->error->error);
+          break;
+        } else if (status == STATUS_EXIT) {
+          break;
+        }
+
+      } while (true);
       break;
     }
     case CLIENT_PRIVLAGED: {

@@ -1,4 +1,5 @@
 #include "packets.pb.h"
+#include "pubsub.h"
 #include <array>
 #include <asio/ip/tcp.hpp>
 #include <asio/post.hpp>
@@ -80,6 +81,55 @@ public:
 
       break;
     }
+
+    case UniversalPacket::kAffirm: {
+      if (!packet->has_affirm())
+        return "Affirmation must be defined";
+      if (!packet->affirm().has_type())
+        return "Affirmation type must be defined";
+      if (packet->affirm().type() < AFFIRM_LOGIN &&
+          packet->affirm().type() > AFFIRM_MESSAGE)
+        return "Invalid Affirmation Type";
+      break;
+    }
+    case UniversalPacket::kError: {
+      if (!packet->has_error())
+        return "Error must be defined";
+      if (!packet->error().has_error())
+        return "Error message be defined";
+      if (packet->error().error().size() > 1024)
+        return "Error message must not exceed 1024 characters";
+      break;
+    }
+
+    case UniversalPacket::kMsg: {
+      if (!packet->has_msg())
+        return "Message must be defined";
+
+      if (!packet->msg().has_sender_indentifier())
+        return "Sender identifier must be defined";
+      if (packet->msg().sender_indentifier().size() != 64)
+        return "Sender identifier must be exactly 64 characters";
+
+      const auto &identifiers = packet->msg().identifiers();
+      if (identifiers.size() < 1 || identifiers.size() > 256)
+        return "Identifiers must contain between 1 and 256 items";
+
+      for (const auto &id : identifiers) {
+        if (id.size() == 64)
+          return "Each identifier must be 64 characters";
+      }
+
+      if (!packet->msg().has_channel_id() ||
+          packet->msg().channel_id().size() != 64)
+        return "Channel ID must be exactly 64 characters";
+
+      if (!packet->msg().has_message())
+        return "Message must be defined";
+      if (packet->msg().message().size() > 1024)
+        return "Message must not exceed 1024 characters";
+      break;
+    }
     default:
       return "Packet type not supported";
     }
@@ -134,7 +184,6 @@ public:
               }
 
               // auth errors should be nonfatal
-              // TODO: implement me!
               sqlite3_stmt *res;
               char *sql = "SELECT user_identifier, user_password FROM users "
                           "WHERE user_identifier = ?";
@@ -144,8 +193,8 @@ public:
                 break;
               }
               sqlite3_bind_text(
-                  res, 0, packet.login().user_identifier().c_str(),
-                  packet.login().user_identifier().size(), SQLITE_STATIC);
+                  res, 1, packet.login().user_identifier().c_str(),
+                  packet.login().user_identifier().size(), SQLITE_TRANSIENT);
 
               int step = sqlite3_step(res);
 
@@ -161,13 +210,17 @@ public:
                 sqlite3_finalize(res);
                 break;
               }
+              sqlite3_finalize(res);
+
+              // must affirm the client!
+              auto affirmation_packet = UniversalPacket();
+              affirmation_packet.mutable_affirm()->set_type(AFFIRM_LOGIN);
+              send_packet(affirmation_packet, false);
 
               // password matches so we good!
               client_level = CLIENT_PRIVLAGED;
-
               break;
             }
-
             case UniversalPacket::PAYLOAD_NOT_SET:
             default: {
             packet_parsing_error:
@@ -185,28 +238,24 @@ public:
   }
 
   void send_error(std::string err, bool kill_socket) {
-    printf("%s\n", err.c_str());
-    if (kill_socket) {
-      schedule_destroy();
-    } else {
-      auto error_packet = UniversalPacket();
-      ErrorPacket *error = new ErrorPacket;
-      error->set_error(err);
-      error_packet.set_allocated_error(error);
-      send_packet(error_packet);
-    }
+    auto error_packet = UniversalPacket();
+    error_packet.mutable_error()->set_error(err);
+    send_packet(error_packet, kill_socket);
   }
 
-  void send_packet(UniversalPacket packet) {
+  void send_packet(UniversalPacket packet, bool kill) {
     std::string buffer;
     packet.SerializeToString(&buffer);
     size_t size = buffer.size();
     asio::async_write(
         socket, asio::buffer(&size, sizeof(uint32_t)),
-        [this, buffer](std::error_code ec, std::size_t /*length*/) {
+        [this, buffer, kill](std::error_code ec, std::size_t /*length*/) {
           asio::async_write(
               socket, asio::buffer(buffer.data(), buffer.size()),
-              [this](std::error_code ec, std::size_t /*length*/) {});
+              [this, kill](std::error_code ec, std::size_t /*length*/) {
+                if (kill)
+                  schedule_destroy();
+              });
         });
   }
 
@@ -224,7 +273,7 @@ private:
   sqlite3 *db;
 };
 
-class Server {
+class Server : PubSubManager {
 public:
   Server(asio::io_context &io_context, const tcp::endpoint &endpoint,
          sqlite3 *db)

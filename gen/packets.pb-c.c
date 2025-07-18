@@ -142,6 +142,51 @@ void   message_packet__free_unpacked
   assert(message->base.descriptor == &message_packet__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   affirm_packet__init
+                     (AffirmPacket         *message)
+{
+  static const AffirmPacket init_value = AFFIRM_PACKET__INIT;
+  *message = init_value;
+}
+size_t affirm_packet__get_packed_size
+                     (const AffirmPacket *message)
+{
+  assert(message->base.descriptor == &affirm_packet__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t affirm_packet__pack
+                     (const AffirmPacket *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &affirm_packet__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t affirm_packet__pack_to_buffer
+                     (const AffirmPacket *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &affirm_packet__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+AffirmPacket *
+       affirm_packet__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (AffirmPacket *)
+     protobuf_c_message_unpack (&affirm_packet__descriptor,
+                                allocator, len, data);
+}
+void   affirm_packet__free_unpacked
+                     (AffirmPacket *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &affirm_packet__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   error_packet__init
                      (ErrorPacket         *message)
 {
@@ -424,6 +469,44 @@ const ProtobufCMessageDescriptor message_packet__descriptor =
   (ProtobufCMessageInit) message_packet__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
+static const ProtobufCFieldDescriptor affirm_packet__field_descriptors[1] =
+{
+  {
+    "type",
+    1,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_ENUM,
+    offsetof(AffirmPacket, has_type),
+    offsetof(AffirmPacket, type),
+    &affirmation_type__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned affirm_packet__field_indices_by_name[] = {
+  0,   /* field[0] = type */
+};
+static const ProtobufCIntRange affirm_packet__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor affirm_packet__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "AffirmPacket",
+  "AffirmPacket",
+  "AffirmPacket",
+  "",
+  sizeof(AffirmPacket),
+  1,
+  affirm_packet__field_descriptors,
+  affirm_packet__field_indices_by_name,
+  1,  affirm_packet__number_ranges,
+  (ProtobufCMessageInit) affirm_packet__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
 static const ProtobufCFieldDescriptor error_packet__field_descriptors[2] =
 {
   {
@@ -476,7 +559,7 @@ const ProtobufCMessageDescriptor error_packet__descriptor =
   (ProtobufCMessageInit) error_packet__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor universal_packet__field_descriptors[4] =
+static const ProtobufCFieldDescriptor universal_packet__field_descriptors[5] =
 {
   {
     "version",
@@ -515,28 +598,41 @@ static const ProtobufCFieldDescriptor universal_packet__field_descriptors[4] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "message",
+    "msg",
     4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     offsetof(UniversalPacket, payload_case),
-    offsetof(UniversalPacket, message),
+    offsetof(UniversalPacket, msg),
     &message_packet__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "affirm",
+    5,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(UniversalPacket, payload_case),
+    offsetof(UniversalPacket, affirm),
+    &affirm_packet__descriptor,
     NULL,
     PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
 static const unsigned universal_packet__field_indices_by_name[] = {
+  4,   /* field[4] = affirm */
   1,   /* field[1] = error */
   2,   /* field[2] = login */
-  3,   /* field[3] = message */
+  3,   /* field[3] = msg */
   0,   /* field[0] = version */
 };
 static const ProtobufCIntRange universal_packet__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 4 }
+  { 0, 5 }
 };
 const ProtobufCMessageDescriptor universal_packet__descriptor =
 {
@@ -546,10 +642,38 @@ const ProtobufCMessageDescriptor universal_packet__descriptor =
   "UniversalPacket",
   "",
   sizeof(UniversalPacket),
-  4,
+  5,
   universal_packet__field_descriptors,
   universal_packet__field_indices_by_name,
   1,  universal_packet__number_ranges,
   (ProtobufCMessageInit) universal_packet__init,
   NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCEnumValue affirmation_type__enum_values_by_number[2] =
+{
+  { "AFFIRM_LOGIN", "AFFIRMATION_TYPE__AFFIRM_LOGIN", 0 },
+  { "AFFIRM_MESSAGE", "AFFIRMATION_TYPE__AFFIRM_MESSAGE", 1 },
+};
+static const ProtobufCIntRange affirmation_type__value_ranges[] = {
+{0, 0},{0, 2}
+};
+static const ProtobufCEnumValueIndex affirmation_type__enum_values_by_name[2] =
+{
+  { "AFFIRM_LOGIN", 0 },
+  { "AFFIRM_MESSAGE", 1 },
+};
+const ProtobufCEnumDescriptor affirmation_type__descriptor =
+{
+  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
+  "AffirmationType",
+  "AffirmationType",
+  "AffirmationType",
+  "",
+  2,
+  affirmation_type__enum_values_by_number,
+  2,
+  affirmation_type__enum_values_by_name,
+  1,
+  affirmation_type__value_ranges,
+  NULL,NULL,NULL,NULL   /* reserved[1234] */
 };

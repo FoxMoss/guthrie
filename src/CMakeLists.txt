@@ -1,30 +1,58 @@
-find_package(Protobuf REQUIRED)
 set(PROTO_PATH ../proto/cpp)
 
 add_executable(guthrie
   main.cpp
-  ${PROTO_PATH}/packets.pb.cc
-  ${PROTO_PATH}/buf/validate/validate.pb.cc
 )
-
-# TODO: disable in release
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
 
 include(FetchContent)
 
 FetchContent_Declare(
     protovalidate_cc
-    URL https://github.com/bufbuild/protovalidate-cc/releases/download/v0.8.0/protovalidate-cc-0.8.0.tar.gz
+    GIT_REPOSITORY https://github.com/FoxMoss/protovalidate-cc
+    GIT_TAG main
 )
 
 FetchContent_MakeAvailable(protovalidate_cc)
 
-target_link_libraries(guthrie PRIVATE protobuf::libprotobuf protovalidate_cc::protovalidate_cc)
-target_include_directories(guthrie PRIVATE
-    ${PROTO_PATH}
+FetchContent_GetProperties(protovalidate)
+
+
+# add_library(packets OBJECT packets.proto)
+# file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/gen)
+# protobuf_generate(
+#     TARGET packets 
+#     LANGUAGE cpp
+#     PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen
+#     IMPORT_DIRS ${protovalidate_SOURCE_DIR}/proto/protovalidate
+#                 ${PROTOBUF_IMPORT_PATH}
+#                 ${CMAKE_CURRENT_SOURCE_DIR}
+# )
+
+
+# target_link_libraries(packets PUBLIC )
+
+find_package(Protobuf CONFIG)
+
+add_library(packets OBJECT packets.proto)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/gen)
+protobuf_generate(
+    TARGET packets
+    LANGUAGE cpp
+    PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen
+    IMPORT_DIRS ${protovalidate_SOURCE_DIR}/proto/protovalidate
+                ${PROTOBUF_IMPORT_PATH}
+                ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+target_link_libraries(packets PUBLIC protovalidate_cc::protovalidate_cc)
+target_include_directories(packets PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/gen)
+
+find_package (SQLite3)
+
+target_link_libraries(guthrie packets ${SQLite3_LIBRARIES})
+target_include_directories(guthrie PRIVATE
+  ${SQLite3_INCLUDE_DIRS}
+)
 
 add_custom_command(TARGET guthrie POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy

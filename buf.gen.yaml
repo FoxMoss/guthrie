@@ -1,6 +1,0 @@
-version: v2
-inputs:
-  - directory: .
-    path:
-      - proto
-plugins:

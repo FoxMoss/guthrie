@@ -6,17 +6,6 @@ add_executable(guthrie
 
 include(FetchContent)
 
-FetchContent_Declare(
-    protovalidate_cc
-    GIT_REPOSITORY https://github.com/FoxMoss/protovalidate-cc
-    GIT_TAG main
-)
-
-FetchContent_MakeAvailable(protovalidate_cc)
-
-FetchContent_GetProperties(protovalidate)
-
-
 # add_library(packets OBJECT packets.proto)
 # file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/gen)
 # protobuf_generate(
@@ -33,18 +22,18 @@ FetchContent_GetProperties(protovalidate)
 
 find_package(Protobuf CONFIG)
 
-add_library(packets OBJECT packets.proto)
+add_library(packets OBJECT ../proto/packets.proto)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/gen)
 protobuf_generate(
     TARGET packets
     LANGUAGE cpp
     PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen
-    IMPORT_DIRS ${protovalidate_SOURCE_DIR}/proto/protovalidate
-                ${PROTOBUF_IMPORT_PATH}
+    IMPORT_DIRS ${PROTOBUF_IMPORT_PATH}
                 ${CMAKE_CURRENT_SOURCE_DIR}
+                ../proto/
 )
 
-target_link_libraries(packets PUBLIC protovalidate_cc::protovalidate_cc)
+target_link_libraries(packets PUBLIC protobuf::libprotobuf)
 target_include_directories(packets PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/gen)
 
 find_package (SQLite3)

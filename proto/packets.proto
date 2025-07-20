@@ -1,42 +1,22 @@
 syntax = "proto2";
 
-import "buf/validate/validate.proto";
-
 message VersionPacket {
-  optional uint32 major_ver = 1 [ (buf.validate.field).required = true ];
-  optional uint32 minor_ver = 2 [ (buf.validate.field).required = true ];
-  optional uint32 patch_ver = 3 [ (buf.validate.field).required = true ];
-  optional uint32 protocol_extension = 4
-      [ (buf.validate.field).required = true ];
+  optional uint32 major_ver = 1;
+  optional uint32 minor_ver = 2;
+  optional uint32 patch_ver = 3;
+  optional uint32 protocol_extension = 4;
 }
 
 message LoginPacket {
-  optional string user_identifier = 1 [
-    (buf.validate.field).string.len = 64,
-    (buf.validate.field).required = true
-  ];
-  optional string user_password = 2 [
-    (buf.validate.field).string.len = 64,
-    (buf.validate.field).required = true
-  ];
+  optional string user_identifier = 1;
+  optional string user_password = 2;
 }
 
 message MessagePacket {
-  optional string sender_identifier = 1 [
-    (buf.validate.field).string.len = 64,
-    (buf.validate.field).required = true
-  ];
-  repeated string identifiers = 2 [
-    (buf.validate.field).repeated.min_items = 1,
-    (buf.validate.field).repeated.max_items = 256,
-    (buf.validate.field).repeated.items = {string : {max_len : 64}},
-    (buf.validate.field).required = true
-  ];
-  optional string channel_id = 3 [ (buf.validate.field).string.len = 64 ];
-  optional string message = 4 [
-    (buf.validate.field).string.max_len = 1024,
-    (buf.validate.field).required = true
-  ];
+  optional string sender_identifier = 1;
+  repeated string identifiers = 2;
+  optional string channel_id = 3;
+  optional string message = 4;
 }
 
 enum AffirmationType {
@@ -44,21 +24,12 @@ enum AffirmationType {
   AFFIRM_MESSAGE = 1;
 }
 
-message AffirmPacket {
-  optional AffirmationType type = 1 [ (buf.validate.field).required = true ];
-}
+message AffirmPacket { optional AffirmationType type = 1; }
 
-message ErrorPacket {
-  optional string error = 3 [
-    (buf.validate.field).string.max_len = 1024,
-    (buf.validate.field).required = true
-  ];
-}
+message ErrorPacket { optional string error = 1; }
 
 message UniversalPacket {
   oneof payload {
-    option (buf.validate.oneof).required = true;
-
     VersionPacket version = 1;
     ErrorPacket error = 2;
     LoginPacket login = 3;

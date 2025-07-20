@@ -7,7 +7,6 @@
 #include <asio/ts/buffer.hpp>
 #include <asio/ts/internet.hpp>
 #include <asio/write.hpp>
-#include <buf/validate/validator.h>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>

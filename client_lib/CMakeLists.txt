@@ -6,6 +6,11 @@ target_include_directories(guthrie-client PUBLIC
   ../gen/
 )
 
+add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/../gen/pakcets.pb-c.c
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../proto/packets.proto
+    COMMAND protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/../proto 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../proto/packets.proto --c_out=${CMAKE_CURRENT_SOURCE_DIR}/../gen/
+    COMMENT "Update packets protobuild")
 
 add_custom_command(TARGET guthrie-client POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy

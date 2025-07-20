@@ -56,7 +56,10 @@ enum Status guthrie_async_read(GuthrieState *state);
  * guthrie_async_read returned true.
  */
 UniversalPacket *guthrie_parse_packet(GuthrieState *state);
-void guthrie_send_version(GuthrieState *state);
+int guthrie_send_version(GuthrieState *state);
 int guthrie_send_auth(GuthrieState *state, char *user_identifier,
                       char *user_password);
 void guthrie_exit(GuthrieState *state);
+int guthrie_send_message(GuthrieState *state, char *sender_identifier,
+                         char *channel_id, char **recipient_identifiers,
+                         size_t recipient_identifiers_len, char *message_body);

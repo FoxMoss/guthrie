@@ -405,11 +405,23 @@ const ProtobufCMessageDescriptor login_packet__descriptor =
   (ProtobufCMessageInit) login_packet__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor message_packet__field_descriptors[3] =
+static const ProtobufCFieldDescriptor message_packet__field_descriptors[4] =
 {
   {
-    "identifiers",
+    "sender_identifier",
     1,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(MessagePacket, sender_identifier),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "identifiers",
+    2,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_STRING,
     offsetof(MessagePacket, n_identifiers),
@@ -421,7 +433,7 @@ static const ProtobufCFieldDescriptor message_packet__field_descriptors[3] =
   },
   {
     "channel_id",
-    2,
+    3,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
@@ -433,7 +445,7 @@ static const ProtobufCFieldDescriptor message_packet__field_descriptors[3] =
   },
   {
     "message",
-    3,
+    4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
@@ -445,14 +457,15 @@ static const ProtobufCFieldDescriptor message_packet__field_descriptors[3] =
   },
 };
 static const unsigned message_packet__field_indices_by_name[] = {
-  1,   /* field[1] = channel_id */
-  0,   /* field[0] = identifiers */
-  2,   /* field[2] = message */
+  2,   /* field[2] = channel_id */
+  1,   /* field[1] = identifiers */
+  3,   /* field[3] = message */
+  0,   /* field[0] = sender_identifier */
 };
 static const ProtobufCIntRange message_packet__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 0, 4 }
 };
 const ProtobufCMessageDescriptor message_packet__descriptor =
 {
@@ -462,7 +475,7 @@ const ProtobufCMessageDescriptor message_packet__descriptor =
   "MessagePacket",
   "",
   sizeof(MessagePacket),
-  3,
+  4,
   message_packet__field_descriptors,
   message_packet__field_indices_by_name,
   1,  message_packet__number_ranges,
@@ -507,20 +520,8 @@ const ProtobufCMessageDescriptor affirm_packet__descriptor =
   (ProtobufCMessageInit) affirm_packet__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor error_packet__field_descriptors[2] =
+static const ProtobufCFieldDescriptor error_packet__field_descriptors[1] =
 {
-  {
-    "user_identifier",
-    1,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
-    offsetof(ErrorPacket, user_identifier),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
   {
     "error",
     3,
@@ -535,14 +536,12 @@ static const ProtobufCFieldDescriptor error_packet__field_descriptors[2] =
   },
 };
 static const unsigned error_packet__field_indices_by_name[] = {
-  1,   /* field[1] = error */
-  0,   /* field[0] = user_identifier */
+  0,   /* field[0] = error */
 };
-static const ProtobufCIntRange error_packet__number_ranges[2 + 1] =
+static const ProtobufCIntRange error_packet__number_ranges[1 + 1] =
 {
-  { 1, 0 },
-  { 3, 1 },
-  { 0, 2 }
+  { 3, 0 },
+  { 0, 1 }
 };
 const ProtobufCMessageDescriptor error_packet__descriptor =
 {
@@ -552,10 +551,10 @@ const ProtobufCMessageDescriptor error_packet__descriptor =
   "ErrorPacket",
   "",
   sizeof(ErrorPacket),
-  2,
+  1,
   error_packet__field_descriptors,
   error_packet__field_indices_by_name,
-  2,  error_packet__number_ranges,
+  1,  error_packet__number_ranges,
   (ProtobufCMessageInit) error_packet__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

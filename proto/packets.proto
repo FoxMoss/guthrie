@@ -22,16 +22,18 @@ message LoginPacket {
 }
 
 message MessagePacket {
-  optional string sender_indentifier
-  [(buf.validate.field).string.len = 64, (buf.validate.field).required = true];
-  repeated string identifiers = 1 [
+  optional string sender_identifier = 1 [
+    (buf.validate.field).string.len = 64,
+    (buf.validate.field).required = true
+  ];
+  repeated string identifiers = 2 [
     (buf.validate.field).repeated.min_items = 1,
     (buf.validate.field).repeated.max_items = 256,
     (buf.validate.field).repeated.items = {string : {max_len : 64}},
     (buf.validate.field).required = true
   ];
-  optional string channel_id = 2 [ (buf.validate.field).string.len = 64 ];
-  optional string message = 3 [
+  optional string channel_id = 3 [ (buf.validate.field).string.len = 64 ];
+  optional string message = 4 [
     (buf.validate.field).string.max_len = 1024,
     (buf.validate.field).required = true
   ];

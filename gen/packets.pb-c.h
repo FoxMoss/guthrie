@@ -65,6 +65,7 @@ struct  LoginPacket
 struct  MessagePacket
 {
   ProtobufCMessage base;
+  char *sender_identifier;
   size_t n_identifiers;
   char **identifiers;
   char *channel_id;
@@ -72,7 +73,7 @@ struct  MessagePacket
 };
 #define MESSAGE_PACKET__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&message_packet__descriptor) \
-, 0,NULL, NULL, NULL }
+, NULL, 0,NULL, NULL, NULL }
 
 
 struct  AffirmPacket
@@ -89,12 +90,11 @@ struct  AffirmPacket
 struct  ErrorPacket
 {
   ProtobufCMessage base;
-  char *user_identifier;
   char *error;
 };
 #define ERROR_PACKET__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&error_packet__descriptor) \
-, NULL, NULL }
+, NULL }
 
 
 typedef enum {

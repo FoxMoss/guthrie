@@ -1,7 +1,9 @@
 #include "guthrie.h"
-#include "packets.pb-c.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+char *user_identifier = NULL;
 int handle_unauth(GuthrieState *state) {
 
   char username[66]; // +1 for null term +1 newline
@@ -12,6 +14,9 @@ int handle_unauth(GuthrieState *state) {
   printf("Password: ");
   fgets(password, 66, stdin);
   password[64] = 0;
+
+  user_identifier = malloc(65);
+  memcpy(user_identifier, username, 65);
 
   if (guthrie_send_auth(state, username, password) == -1)
     return -1;
@@ -34,9 +39,6 @@ int main(int argc, char *argv[]) {
   } client_level = CLIENT_UNAUTHED; // skiping preversioned
 
   while (true) {
-
-    if (guthrie_async_read(state) == STATUS_EXIT)
-      break;
 
     switch (client_level) {
     case CLIENT_UNAUTHED: {
@@ -64,6 +66,51 @@ int main(int argc, char *argv[]) {
       break;
     }
     case CLIENT_PRIVLAGED: {
+
+      enum Status status = guthrie_async_read(state);
+      if (status == STATUS_PACKET_AVAILABLE) {
+        UniversalPacket *packet = guthrie_parse_packet(state);
+        if (packet->payload_case == UNIVERSAL_PACKET__PAYLOAD_AFFIRM &&
+            packet->affirm->type == AFFIRMATION_TYPE__AFFIRM_MESSAGE) {
+          printf("Message affirmed\n");
+        }
+
+        if (packet->payload_case == UNIVERSAL_PACKET__PAYLOAD_MSG)
+          printf("\n--- From %s\n%s\n---\n", packet->msg->sender_identifier,
+                 packet->msg->message);
+
+        if (packet->payload_case == UNIVERSAL_PACKET__PAYLOAD_ERROR)
+          printf("\n---\n%s\n---\n", packet->error->error);
+
+        break;
+      } else if (status == STATUS_EXIT) {
+        break;
+      }
+
+      char op[3];
+      fgets(op, 3, stdin);
+      switch (op[0]) {
+      case 's': {
+        char recipient_identifier[66]; // +1 for null term +1 newline
+        printf("\nSend to: ");
+        fgets(recipient_identifier, 66, stdin);
+        recipient_identifier[64] = 0;
+        char *recipient_identifier_ptr = (char *)(&recipient_identifier[0]);
+
+        char body[258];
+        printf("Message: ");
+        fgets(body, 258, stdin);
+        body[256] = 0;
+        guthrie_send_message(state, user_identifier, NULL,
+                             &recipient_identifier_ptr, 1, body);
+        break;
+      }
+      case 'c':
+      default: {
+        printf("Skipping!\n");
+        break;
+      }
+      }
       break;
     }
     }
@@ -73,5 +120,7 @@ goodbye:
   printf("Goodbye!\n");
 
   guthrie_exit(state);
+  if (user_identifier != NULL)
+    free(user_identifier);
   return 0;
 }

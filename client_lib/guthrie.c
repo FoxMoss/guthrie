@@ -1,6 +1,5 @@
 #include "guthrie.h"
 #include "packets.pb-c.h"
-#include <asm-generic/errno-base.h>
 #include <errno.h>
 #include <signal.h>
 #include <stddef.h>

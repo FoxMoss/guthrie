@@ -1,8 +1,8 @@
 #pragma once
-#include <../gen/packets.pb-c.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <packets.pb-c.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

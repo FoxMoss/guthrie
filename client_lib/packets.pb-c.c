@@ -524,7 +524,7 @@ static const ProtobufCFieldDescriptor error_packet__field_descriptors[1] =
 {
   {
     "error",
-    3,
+    1,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
@@ -540,7 +540,7 @@ static const unsigned error_packet__field_indices_by_name[] = {
 };
 static const ProtobufCIntRange error_packet__number_ranges[1 + 1] =
 {
-  { 3, 0 },
+  { 1, 0 },
   { 0, 1 }
 };
 const ProtobufCMessageDescriptor error_packet__descriptor =

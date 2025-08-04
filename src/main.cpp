@@ -4,6 +4,7 @@
 #include <asio/ip/tcp.hpp>
 #include <asio/post.hpp>
 #include <asio/registered_buffer.hpp>
+#include <asio/signal_set.hpp>
 #include <asio/ts/buffer.hpp>
 #include <asio/ts/internet.hpp>
 #include <asio/write.hpp>
@@ -40,6 +41,7 @@ public:
   tcp::socket socket;
 
   void start() { do_read_header(); }
+  void stop() { socket.close(); }
   void subscriber_receive(UniversalPacket packet) {
     send_packet(packet, false);
   }
@@ -146,7 +148,7 @@ private:
   }
 
   void do_read_body(uint32_t buf_size) {
-    std::shared_ptr<uint8_t> buf = std::make_unique<uint8_t>(buf_size);
+    auto buf = std::shared_ptr<void>(malloc(buf_size), free);
     asio::async_read(
         socket, asio::buffer(buf.get(), buf_size),
         [this, buf, buf_size](std::error_code ec, std::size_t /*length*/) {
@@ -191,7 +193,6 @@ private:
               if (client_level != CLIENT_UNAUTHED)
                 goto packet_parsing_error;
 
-              printf("%p sqlite\n", db);
               // auth errors should be nonfatal
               sqlite3_stmt *res;
               char *sql = "SELECT user_identifier, user_password FROM users "
@@ -319,6 +320,7 @@ public:
   Server(asio::io_context &io_context, const tcp::endpoint &endpoint,
          sqlite3 *mdb)
       : acceptor(io_context, endpoint), context(&io_context), db(mdb),
+        signals(io_context, SIGINT, SIGTERM),
         PubSubManager<UniversalPacket>(
             [this](size_t id, UniversalPacket packet) -> bool {
               if (!socket_storage.contains(id))
@@ -327,7 +329,14 @@ public:
               return true;
             }) {
 
-    printf("%p sqlite\n", db);
+    signals.async_wait([this](std::error_code /*ec*/, int /*signo*/) {
+      acceptor.close();
+      for (auto socket_obj : socket_storage) {
+        socket_obj.second->stop();
+      }
+      context->stop();
+    });
+
     do_accept();
   }
 
@@ -350,9 +359,10 @@ private:
         socket_storage[socket_id_count] = socket_interface;
         socket_interface->start();
         socket_id_count++;
+        do_accept();
+      } else {
+        printf("hi!!\n");
       }
-
-      do_accept();
     });
   }
 
@@ -362,6 +372,7 @@ private:
   asio::io_context
       *context; // might cause segfault should be a ptr to the main func's
   sqlite3 *db;
+  asio::signal_set signals;
 };
 
 int main(int argc, char *argv[]) {
@@ -374,7 +385,6 @@ int main(int argc, char *argv[]) {
                           "PRIMARY KEY (user_identifier)"
                           ")";
 
-  printf("%p sqlite\n", db);
   char *error_msg;
   if (sqlite3_exec(db, generate_db_sql, NULL, 0, &error_msg) != SQLITE_OK) {
     printf("%s: %s\n", argv[0], error_msg);
@@ -398,6 +408,8 @@ int main(int argc, char *argv[]) {
   } catch (std::exception &e) {
     printf("%s: %s", argv[0], e.what());
   }
+
+  google::protobuf::ShutdownProtobufLibrary();
   sqlite3_close(db);
 
   return 0;

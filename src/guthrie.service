@@ -1,0 +1,13 @@
+[Unit]
+Description=Guthrie
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/guthrie
+Restart=on-failure
+RestartSec=5s
+StartLimitIntervalSec=30
+StartLimitBurst=3
+
+[Install]
+WantedBy=multi-user.target

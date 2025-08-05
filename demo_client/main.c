@@ -7,11 +7,11 @@ char *user_identifier = NULL;
 int handle_unauth(GuthrieState *state) {
 
   char username[66]; // +1 for null term +1 newline
-  printf("\nUsername: ");
+  printf("Username: \n");
   fgets(username, 66, stdin);
   username[64] = 0;
   char password[66];
-  printf("Password: ");
+  printf("Password: \n");
   fgets(password, 66, stdin);
   password[64] = 0;
 
@@ -24,7 +24,7 @@ int handle_unauth(GuthrieState *state) {
 }
 
 int main(int argc, char *argv[]) {
-  OptionalGuthrieState op = guthrie_init();
+  OptionalGuthrieState op = guthrie_init("205.185.125.167", 8448);
   if (op.type == TYPE_ERROR) {
     printf("%s: %s\n", argv[0], op.data.error_str);
     return 1;

@@ -58,6 +58,23 @@ target_include_directories(packets PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/gen)
 target_link_libraries(guthrie packets sqlite3)
 target_include_directories(guthrie PRIVATE)
 
+install(TARGETS guthrie DESTINATION bin)
+
+set(CPACK_PACKAGE_NAME "guthrie-server") 
+set(CPACK_PACKAGE_AUTHOR "FoxMoss") 
+set(CPACK_PACKAGE_CONTACT "foxmoss@mediaology.com")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+set(CPACK_PACKAGE_VERSION_MAJOR 0)
+set(CPACK_PACKAGE_VERSION_MINOR 1)
+set(CPACK_PACKAGE_VERSION_PATCH 0)
+set(CPACK_PACKAGE_DESCRIPTION "Client library for the Guthrie messaging protocol")
+set(CPACK_INSTALL_PREFIX "/usr/local") 
+
+set(CPACK_GENERATOR "TGZ;DEB") 
+
+include(CPack)
+
 add_custom_command(TARGET guthrie POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_BINARY_DIR}/compile_commands.json

@@ -376,14 +376,18 @@ private:
 };
 
 int main(int argc, char *argv[]) {
-  sqlite3 *db;
-  sqlite3_open("data.db", &db);
-  char *generate_db_sql = "CREATE TABLE IF NOT EXISTS users ("
-                          "user_identifier TEXT NOT NULL,"
-                          "user_password TEXT NOT NULL,"
-                          "date_created DATETIME DEFAULT CURRENT_TIMESTAMP,"
-                          "PRIMARY KEY (user_identifier)"
-                          ")";
+  sqlite3 *db = NULL;
+  if (sqlite3_open("/var/db/guthrie.db", &db) != SQLITE_OK) {
+    printf("%s: could not connect to sqlite database\n", argv[0]);
+    return 1;
+  }
+
+  char *generate_db_sql =
+      "CREATE TABLE 'users' ('id' integer PRIMARY KEY AUTOINCREMENT NOT NULL, "
+      "'user_identifier' varchar, 'user_password' varchar, 'created_at' "
+      "datetime(6) NOT NULL, 'updated_at' datetime(6) NOT NULL)"; // this should
+                                                                  // be created
+                                                                  // by rails
 
   char *error_msg;
   if (sqlite3_exec(db, generate_db_sql, NULL, 0, &error_msg) != SQLITE_OK) {

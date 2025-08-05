@@ -6,11 +6,15 @@ project(Guthrie)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(BUILD_LIBRARY "Build just the library" On)
+option(BUILD_LIBRARY "Build just the library" Off)
+option(BUILD_SERVER "Build just the server" Off)
+option(BUILD_ALL "Build all" On)
 
-if(${BUILD_LIBRARY})
+if(${BUILD_SERVER})
+  add_subdirectory(src)
+elseif(${BUILD_LIBRARY})
   add_subdirectory(client_lib)
-else()
+elseif(${BUILD_ALL})
   add_subdirectory(src)
   add_subdirectory(client_lib)
   add_subdirectory(demo_client)

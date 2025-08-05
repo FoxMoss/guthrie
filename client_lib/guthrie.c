@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-OptionalGuthrieState guthrie_init() {
+OptionalGuthrieState guthrie_init(char *hostname, int port) {
   signal(SIGPIPE, SIG_IGN);
   int client_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (client_fd == -1)
@@ -16,9 +16,9 @@ OptionalGuthrieState guthrie_init() {
 
   struct sockaddr_in serv_addr;
   serv_addr.sin_family = AF_INET;
-  serv_addr.sin_port = htons(8448);
+  serv_addr.sin_port = htons(port);
 
-  if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) != 1)
+  if (inet_pton(AF_INET, hostname, &serv_addr.sin_addr) != 1)
     return (OptionalGuthrieState){TYPE_ERROR, {.error_str = "Failed find ip"}};
 
   if (connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) != 0)

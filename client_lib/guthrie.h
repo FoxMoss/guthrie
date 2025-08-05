@@ -35,7 +35,7 @@ typedef struct {
   } data;
 } OptionalGuthrieState;
 
-OptionalGuthrieState guthrie_init();
+OptionalGuthrieState guthrie_init(char *hostname, int port);
 
 enum Status {
   STATUS_EXIT,

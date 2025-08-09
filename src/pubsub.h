@@ -41,9 +41,10 @@ public:
     }
 
     std::vector<size_t> id_expired;
-    for (auto id : listeners[channel])
-      if (!callback(id, packet))
-        id_expired.push_back(id);
+    for (auto channel : listeners)
+      for (auto id : channel.second)
+        if (!callback(id, packet))
+          id_expired.push_back(id);
 
     // this bit is a fail safe! it should never be triggered but there might be
     // a race condition that will trigger it. if someone could go wrong in a

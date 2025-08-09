@@ -24,7 +24,7 @@ int handle_unauth(GuthrieState *state) {
 }
 
 int main(int argc, char *argv[]) {
-  OptionalGuthrieState op = guthrie_init("205.185.125.167", 8448);
+  OptionalGuthrieState op = guthrie_init("127.0.0.1", 8448);
   if (op.type == TYPE_ERROR) {
     printf("%s: %s\n", argv[0], op.data.error_str);
     return 1;
@@ -92,13 +92,13 @@ int main(int argc, char *argv[]) {
       switch (op[0]) {
       case 's': {
         char recipient_identifier[66]; // +1 for null term +1 newline
-        printf("\nSend to: ");
+        printf("Send to: \n");
         fgets(recipient_identifier, 66, stdin);
         recipient_identifier[64] = 0;
         char *recipient_identifier_ptr = (char *)(&recipient_identifier[0]);
 
         char body[258];
-        printf("Message: ");
+        printf("Message: \n");
         fgets(body, 258, stdin);
         body[256] = 0;
         guthrie_send_message(state, user_identifier, NULL,

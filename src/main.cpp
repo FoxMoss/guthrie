@@ -137,8 +137,8 @@ private:
 
       if (!packet->msg().has_message())
         return "Message must be defined";
-      if (packet->msg().message().size() > 1024)
-        return "Message must not exceed 1024 characters";
+      if (packet->msg().message().size() > 10000)
+        return "Message must not exceed 10000 characters";
       break;
     }
     default:
@@ -383,7 +383,8 @@ int main(int argc, char *argv[]) {
   }
 
   char *generate_db_sql =
-      "CREATE TABLE 'users' ('id' integer PRIMARY KEY AUTOINCREMENT NOT NULL, "
+      "CREATE TABLE IF NOT EXISTS 'users' ('id' integer PRIMARY KEY "
+      "AUTOINCREMENT NOT NULL, "
       "'user_identifier' varchar, 'user_password' varchar, 'created_at' "
       "datetime(6) NOT NULL, 'updated_at' datetime(6) NOT NULL)"; // this should
                                                                   // be created

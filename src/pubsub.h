@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <functional>
+#include <queue>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -12,8 +13,15 @@ public:
       : callback(callback) {}
 
   void listen(std::string channel, size_t self_id) {
-    if (!listeners.contains(channel))
+    if (!listeners.contains(channel)) {
+      while (!unconnected_queue[channel].empty()) {
+        Packet packet = unconnected_queue[channel].front();
+        callback(self_id, packet);
+        unconnected_queue[channel].pop();
+      }
+
       listeners[channel] = {};
+    }
     listeners[channel].insert(self_id);
   }
   void remove_listener(std::string channel, size_t self_id) {
@@ -25,8 +33,13 @@ public:
       listeners.erase(channel);
   }
   void send(std::string channel, Packet packet) {
-    if (!listeners.contains(channel))
+    if (!listeners.contains(channel)) {
+      // TODO: realistically this should have a message cap but im keeping it
+      // uncapped for demo reasons
+      unconnected_queue[channel].push(packet);
       return;
+    }
+
     std::vector<size_t> id_expired;
     for (auto id : listeners[channel])
       if (!callback(id, packet))
@@ -42,5 +55,6 @@ public:
 
 private:
   std::unordered_map<std::string, std::set<size_t>> listeners;
+  std::unordered_map<std::string, std::queue<Packet>> unconnected_queue;
   std::function<bool(size_t id, Packet packet)> callback;
 };

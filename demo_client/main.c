@@ -24,7 +24,7 @@ int handle_unauth(GuthrieState *state) {
 }
 
 int main(int argc, char *argv[]) {
-  OptionalGuthrieState op = guthrie_init("127.0.0.1", 8448);
+  OptionalGuthrieState op = guthrie_init("205.185.125.167", 8448);
   if (op.type == TYPE_ERROR) {
     printf("%s: %s\n", argv[0], op.data.error_str);
     return 1;
